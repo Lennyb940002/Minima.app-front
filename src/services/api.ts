@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Sale } from '../components/sales/types';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/sales';
+const API_URL = process.env.VITE_BACKEND_URL + '/api/sales';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -23,7 +23,7 @@ api.interceptors.request.use((config) => {
 export const salesApi = {
     getAllSales: async (): Promise<Sale[]> => {
         try {
-            const response = await api.get<Sale[]>('/');
+            const response = await api.get<Sale[]>('');
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des ventes :', error);
@@ -43,7 +43,7 @@ export const salesApi = {
 
     createSale: async (sale: Omit<Sale, '_id'>): Promise<Sale> => {
         try {
-            const response = await api.post<Sale>('/', sale);
+            const response = await api.post<Sale>('', sale);  // Enlever '/' après API_URL
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la création de la vente :', error);
