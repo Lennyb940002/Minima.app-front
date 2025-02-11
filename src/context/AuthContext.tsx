@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plan } from '../types';
 
 interface AuthContextType {
@@ -14,90 +15,65 @@ interface AuthContextType {
     logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
-    isAuthenticated: false,
-    setIsAuthenticated: () => { },
-    selectedPlan: null,
-    setSelectedPlan: () => { },
-    userEmail: '',
-    setUserEmail: () => { },
-    hasPaid: false,
-    setHasPaid: () => { },
-    isLoading: true,
-    logout: () => { },
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
-
-interface AuthProviderProps {
-    children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
     const [userEmail, setUserEmail] = useState('');
     const [hasPaid, setHasPaid] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const initializeAuth = () => {
-            const token = localStorage.getItem('token');
-            const storedEmail = localStorage.getItem('userEmail');
-            const paymentStatus = localStorage.getItem('hasPaid');
-            const storedPlan = localStorage.getItem('selectedPlan');
+        console.log('AuthProvider useEffect triggered');
+        // Vérifier l'authentification au chargement
+        const token = localStorage.getItem('token');
+        const storedHasPaid = localStorage.getItem('hasPaid');
 
-            if (token) {
-                setIsAuthenticated(true);
-                setUserEmail(storedEmail || '');
-                setHasPaid(paymentStatus === 'true');
-                if (storedPlan) {
-                    setSelectedPlan(JSON.parse(storedPlan));
-                }
-            }
-            setIsLoading(false);
-        };
+        console.log('Initial token:', token);
+        console.log('Initial hasPaid status:', storedHasPaid);
 
-        initializeAuth();
+        setIsAuthenticated(!!token);
+        setHasPaid(storedHasPaid === 'true');
+        setIsLoading(false);
     }, []);
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            localStorage.setItem('userEmail', userEmail);
-            localStorage.setItem('hasPaid', String(hasPaid));
-            if (selectedPlan) {
-                localStorage.setItem('selectedPlan', JSON.stringify(selectedPlan));
-            }
-        }
-    }, [isAuthenticated, userEmail, hasPaid, selectedPlan]);
-
     const logout = () => {
+        console.log('Logging out');
         localStorage.removeItem('token');
-        localStorage.removeItem('userEmail');
         localStorage.removeItem('hasPaid');
-        localStorage.removeItem('selectedPlan');
         setIsAuthenticated(false);
         setUserEmail('');
-        setHasPaid(false);
         setSelectedPlan(null);
+        setHasPaid(false);
+        navigate('/auth');
+    };
+
+    const value = {
+        isAuthenticated,
+        setIsAuthenticated,
+        selectedPlan,
+        setSelectedPlan,
+        userEmail,
+        setUserEmail,
+        hasPaid,
+        setHasPaid,
+        isLoading,
+        logout
     };
 
     return (
-        <AuthContext.Provider
-            value={{
-                isAuthenticated,
-                setIsAuthenticated,
-                selectedPlan,
-                setSelectedPlan,
-                userEmail,
-                setUserEmail,
-                hasPaid,
-                setHasPaid,
-                isLoading,
-                logout,
-            }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
 };
