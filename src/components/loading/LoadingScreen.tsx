@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
+import logo from '../../image/logo.png';
+
 
 export function LoadingScreen() {
     const navigate = useNavigate();
@@ -20,7 +22,7 @@ export function LoadingScreen() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
-            <img src="/src/image/logo.png" alt="Logo" className="h-60 w-60" />
+            <img src={logo} alt="Logo" className="h-60 w-60" />
             <div className="mt-8 w-64 h-2 bg-white/20 rounded-full overflow-hidden">
                 <div className="h-full bg-white animate-loading-bar"></div>
             </div>
