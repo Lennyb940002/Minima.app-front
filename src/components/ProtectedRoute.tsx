@@ -1,30 +1,27 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { LoadingScreen } from '../components/loading/LoadingScreen';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../../App';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
-    requirePayment?: boolean;
+    requireAuth?: boolean;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     children,
-    requirePayment = true,
+    requireAuth = true
 }) => {
     const { isAuthenticated, hasPaid, isLoading } = useAuth();
-    const location = useLocation();
 
     if (isLoading) {
-        return <LoadingScreen />;
+        return <div>Chargement...</div>;
     }
 
-    if (!isAuthenticated) {
-        return <Navigate to="/auth" state={{ from: location }} replace />;
+    if (requireAuth && !isAuthenticated) {
+        return <Navigate to="/auth" replace />;
     }
 
-    if (requirePayment && !hasPaid) {
-        return <Navigate to="/subscription" state={{ from: location }} replace />;
+    if (requireAuth && isAuthenticated && !hasPaid) {
+        return <Navigate to="/subscription" replace />;
     }
 
     return <>{children}</>;
