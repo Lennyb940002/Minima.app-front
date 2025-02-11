@@ -23,7 +23,7 @@ api.interceptors.request.use((config) => {
 export const salesApi = {
     getAllSales: async (): Promise<Sale[]> => {
         try {
-            const response = await api.get<Sale[]>('');
+            const response = await api.get<Sale[]>('/');
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des ventes :', error);
@@ -43,7 +43,7 @@ export const salesApi = {
 
     createSale: async (sale: Omit<Sale, '_id'>): Promise<Sale> => {
         try {
-            const response = await api.post<Sale>('', sale);  // Enlever '/' après API_URL
+            const response = await api.post<Sale>('/', sale);
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la création de la vente :', error);
