@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Sale } from '../components/sales/types';
 
-const API_URL = process.env.VITE_BACKEND_URL + '/api/sales';
+const API_URL = process.env.VITE_BACKEND_URL + '/api/sales/';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -23,7 +23,7 @@ api.interceptors.request.use((config) => {
 export const salesApi = {
     getAllSales: async (): Promise<Sale[]> => {
         try {
-            const response = await api.get<Sale[]>('/');
+            const response = await api.get<Sale[]>('');
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des ventes :', error);
@@ -33,7 +33,7 @@ export const salesApi = {
 
     getSalesAnalytics: async (): Promise<any> => {
         try {
-            const response = await api.get<any>('/analytics');
+            const response = await api.get<any>('analytics');
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des analytics des ventes :', error);
@@ -43,7 +43,7 @@ export const salesApi = {
 
     createSale: async (sale: Omit<Sale, '_id'>): Promise<Sale> => {
         try {
-            const response = await api.post<Sale>('/', sale);
+            const response = await api.post<Sale>('', sale);  // Enlever '/' après API_URL
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la création de la vente :', error);
@@ -53,7 +53,7 @@ export const salesApi = {
 
     updateSale: async (id: string, sale: Partial<Omit<Sale, '_id'>>): Promise<Sale> => {
         try {
-            const response = await api.put<Sale>(`/${id}`, sale);
+            const response = await api.put<Sale>(`${id}`, sale);
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la mise à jour de la vente :', error);
@@ -63,7 +63,7 @@ export const salesApi = {
 
     updateDecStatus: async (id: string): Promise<Sale> => {
         try {
-            const response = await api.patch<Sale>(`/${id}/decstatus`, {
+            const response = await api.patch<Sale>(`${id}/decstatus`, {
                 decStatus: 2
             });
             return response.data;
@@ -75,7 +75,7 @@ export const salesApi = {
 
     deleteSale: async (id: string): Promise<void> => {
         try {
-            await api.delete(`/${id}`);
+            await api.delete(`${id}`);
         } catch (error) {
             console.error('Erreur lors de la suppression de la vente :', error);
             throw error;
