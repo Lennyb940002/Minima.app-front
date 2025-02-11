@@ -1,25 +1,3 @@
-import axios from 'axios';
-import { Sale } from '../components/sales/types';
-
-const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/sales';
-
-const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-}, (error) => {
-    return Promise.reject(error);
-});
-
 export const salesApi = {
     getAllSales: async (): Promise<Sale[]> => {
         try {
@@ -27,6 +5,16 @@ export const salesApi = {
             return response.data;
         } catch (error) {
             console.error('Erreur lors de la récupération des ventes :', error);
+            throw error;
+        }
+    },
+
+    getSalesAnalytics: async (): Promise<any> => {
+        try {
+            const response = await api.get<any>('/analytics');
+            return response.data;
+        } catch (error) {
+            console.error('Erreur lors de la récupération des analytics des ventes :', error);
             throw error;
         }
     },
