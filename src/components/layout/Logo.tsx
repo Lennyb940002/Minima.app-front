@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Settings } from 'lucide-react';
 import { useAuth } from '../../App';
 import SettingsModal from './SettingsModal';
+import logo from '../../image/logo.png';
 
 export function Logo() {
   const location = useLocation();
@@ -44,7 +45,7 @@ export function Logo() {
           className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img
-            src={isSportPage ? "/src/image/lgogo.png" : "/src/image/logo.png"}
+            src={logo}
             alt="Logo"
             className="h-24 w-24"
           /><span className="text-xl font-normal mt-10">Minima</span>
