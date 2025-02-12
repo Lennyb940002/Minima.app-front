@@ -1,113 +1,34 @@
-import axios from 'axios';
-import { log } from 'console';
+import { Response, NextFunction } from 'express';
+import { User } from '../models/User';
+import jwt from 'jsonwebtoken';
+import { config } from '../config';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
+export const auth = async (req, res, next) => {
+    try {
+        const token = req.header('Authorization')?.replace('Bearer ', '');
 
-// Configuration de base d'axios
-axios.defaults.baseURL = API_URL;
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
-
-// Fonction utilitaire pour gérer les erreurs
-const handleError = (error: any) => {
-    console.error('API Error:', error);
-    if (error.response) {
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-    }
-    if (error.response?.status === 401) {
-        console.log('Unauthorized access, redirecting to login');
-        authApi.logout();
-        window.location.href = '/login';
-    }
-    throw error;
-};
-
-export const authApi = {
-    login: async (email: string, password: string) => {
-        try {
-            console.log('Attempting login for:', email);
-            console.log('Password:', password);
-            
-            const response = await axios.post('/login', 
-                { email, password },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                }
-            );
-            
-            console.log('Login response:', response.data);
-            
-            // Token is stored in httpOnly cookie, no need to store it in localStorage
-            
-            return response.data;
-        } catch (error) {
-            return handleError(error);
+        if (!token) {
+            throw new Error('Token missing');
         }
-    },
 
-    register: async (email: string, password: string) => {
-        try {
-            console.log('Attempting registration for:', email);
-            const response = await axios.post('/register', 
-                { email, password },
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    withCredentials: true
-                }
-            );
-            
-            console.log('Registration response:', response.data);
-            
-            // Token is stored in httpOnly cookie, no need to store it in localStorage
-            
-            return response.data;
-        } catch (error) {
-            return handleError(error);
+        const decoded = jwt.verify(token, config.jwtSecret);
+        const user = await User.findById(decoded.userId);
+
+        if (!user) {
+            throw new Error('User not found');
         }
-    },
 
-    logout: () => {
-        // Clear the cookies on logout
-        document.cookie = 'token=; Max-Age=0';
-    },
+        req.user = {
+            userId: user.id,
+            email: user.email,
+            hasPaid: user.hasPaid,
+            role: user.role
+        };
 
-    isAuthenticated: () => {
-        // Check for the presence of the token cookie
-        return document.cookie.includes('token=');
-    },
-
-    getToken: () => {
-        // Extract token from cookie if needed
-        const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
-        if (match) return match[2];
-        return null;
+        next();
+    } catch (error) {
+        res.status(401).json({
+            error: error instanceof Error ? error.message : 'Authentication error'
+        });
     }
 };
-
-// Intercepteurs
-axios.interceptors.request.use(
-    (config) => {
-        const token = authApi.getToken();
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        console.error('Request interceptor error:', error);
-        return Promise.reject(error);
-    }
-);
-
-axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        return handleError(error);
-    }
-);
